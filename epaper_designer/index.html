@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Paper Designer</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;700&family=Black+Han+Sans&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- CodeMirror Editor -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+    <style>
+        @font-face {
+            font-family: 'BlackHanSans';
+            src: url('fonts/BlackHanSans-Regular.ttf') format('truetype');
+        }
+
+        @font-face {
+            font-family: 'neodgm';
+            src: url('fonts/neodgm.ttf') format('truetype');
+        }
+
+        @font-face {
+            font-family: 'Inter';
+            src: url('fonts/Inter.ttf') format('truetype');
+        }
+
+        @font-face {
+            font-family: 'InterBold';
+            src: url('fonts/Inter_bold.ttf') format('truetype');
+        }
+
+        @font-face {
+            font-family: 'NanumSubset';
+            src: url('fonts/NanumSubset.ttf') format('truetype');
+        }
+
+        @font-face {
+            font-family: 'NanumBoldSubset';
+            src: url('fonts/NanumBoldSubset.ttf') format('truetype');
+        }
+
+        @font-face {
+            font-family: 'Signika-SB';
+            src: url('fonts/Signika-SB.ttf') format('truetype');
+        }
+    </style>
+</head>
+
+<body class="dark-theme">
+    <div id="app">
+        <header>
+            <h1 id="title">E-Paper Designer</h1>
+            <div class="device-config">
+                <div class="input-group">
+                    <label data-i18n="label_mac">MAC</label>
+                    <input type="text" id="target-mac" value="" placeholder="MAC Address">
+                </div>
+                <div class="input-group">
+                    <label data-i18n="label_url">URL</label>
+                    <input type="text" id="target-url" value="" placeholder="Server URL">
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="send-btn" class="btn primary" data-i18n="btn_send">전송하기</button>
+                <select id="lang-select">
+                    <option value="ko">한국어</option>
+                    <option value="en">English</option>
+                </select>
+                <button id="export-btn" class="btn secondary">Export JSON</button>
+                <button id="import-btn" class="btn secondary">Import JSON</button>
+            </div>
+        </header>
+
+        <main>
+            <aside class="sidebar left">
+                <section class="tools">
+                    <h2 class="section-title" data-i18n="tools">도구</h2>
+                    <div class="tool-buttons">
+                        <button id="add-text" class="tool-btn">
+                            <i class="material-icons">title</i>
+                            <span data-i18n="add_text">텍스트</span>
+                        </button>
+                        <button id="add-rect" class="tool-btn">
+                            <i class="material-icons">check_box_outline_blank</i>
+                            <span data-i18n="add_rect">사각형</span>
+                        </button>
+                        <button id="add-tri" class="tool-btn">
+                            <i class="material-icons">change_history</i>
+                            <span data-i18n="add_tri">삼각형</span>
+                        </button>
+                        <button id="add-line" class="tool-btn">
+                            <i class="material-icons">maximize</i>
+                            <span data-i18n="add_line">라인</span>
+                        </button>
+                    </div>
+                </section>
+                <section class="layers">
+                    <h2 class="section-title" data-i18n="layers">레이어</h2>
+                    <ul id="layer-list"></ul>
+                </section>
+            </aside>
+
+            <div class="workspace">
+                <div class="zoom-controls">
+                    <button onclick="app.setZoom(app.zoom - 0.5)" title="Zoom Out"><i
+                            class="material-icons">remove</i></button>
+                    <span id="zoom-level">200%</span>
+                    <button onclick="app.setZoom(app.zoom + 0.5)" title="Zoom In"><i
+                            class="material-icons">add</i></button>
+                    <button onclick="app.setZoom(1.0)" title="Reset Zoom"><i class="material-icons">refresh</i></button>
+                </div>
+                <div class="canvas-container" id="canvas-holder">
+                    <div class="canvas-ruler horizontal"></div>
+                    <div class="canvas-ruler vertical"></div>
+                    <!-- 2.13 inch display (250x128 pixels) -->
+                    <canvas id="main-canvas" width="250" height="128"></canvas>
+                </div>
+            </div>
+
+            <aside class="sidebar right">
+                <section class="properties">
+                    <div id="prop-editor" class="prop-editor-empty">
+                        <p data-i18n="select-element">요소를 선택하여 속성을 편집하세요.</p>
+                    </div>
+                </section>
+            </aside>
+        </main>
+
+        <footer>
+            <div class="editor-header">
+                <span class="editor-title">JSON Data (CodeMirror) - Developed by purndal with Antigravity
+                    (Gemini)</span>
+                <button id="apply-json" class="btn-sm">Apply</button>
+            </div>
+            <div id="codemirror-container"></div>
+            <div id="json-error-msg" class="error-msg"></div>
+        </footer>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <script src="i18n.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
